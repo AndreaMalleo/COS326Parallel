@@ -107,10 +107,24 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
 
   let num_cores = System.cpu_count ()
 
+  let num_chunks = 3
 
-  let tabulate f n = failwith "implement me"
-
-
+  let force_arrays (n: int) (a: 'a F.future array): 'a array =
+    Array.init n (fun i ->
+		  let chunk_index = (n * i) / num_chunks in
+		  let chunk = F.force a.(chunk_index) in
+		  chunk.(i-chunk_index))
+		  
+  (*might be out of order*)
+  let tabulate f n = 
+    let result = Array.init num_chunks (fun i ->
+      let lo = (n * i) / num_chunks in
+      let hi = (n * (i+1) / num_chunks) - 1 in
+      F.future (Array.init (hi - lo + 1))
+	       (fun i -> f (i + lo))) in
+    force_arrays n future_result
+  ;;
+    
   let seq_of_array a = a
 
 
