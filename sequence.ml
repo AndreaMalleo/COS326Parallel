@@ -122,7 +122,7 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
       let hi = (n * (i+1) / num_chunks) - 1 in
       F.future (Array.init (hi - lo + 1))
 	       (fun i -> f (i + lo))) in
-    force_arrays n future_result
+    force_arrays n result
   ;;
     
   let seq_of_array a = a
@@ -152,7 +152,10 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
   let nth seq i = failwith "implement me"
 
 
-  let map f seq = failwith "implement me"
+
+  let map f seq = 
+    tabulate (fun i -> f seq.(i)) (length seq)
+  ;;
 
 
   let map_reduce m r b seq = failwith "implement me"
