@@ -1,60 +1,44 @@
 ### Starting build.
-# Target: population/population.ml.depends, tags: { extension:ml, file:population/population.ml, ocaml, ocamldep, package(str), package(threads), quiet, thread, traverse }
-ocamlfind ocamldep -package threads -package str -modules population/population.ml > population/population.ml.depends # cached
-# Target: population/parse.mli.depends, tags: { extension:mli, file:population/parse.mli, ocaml, ocamldep, package(str), package(threads), quiet, thread, traverse }
-ocamlfind ocamldep -package threads -package str -modules population/parse.mli > population/parse.mli.depends # cached
-# Target: population/parse.cmi, tags: { byte, compile, extension:mli, file:population/parse.mli, interf, ocaml, package(str), package(threads), quiet, thread, traverse }
-ocamlfind ocamlc -c -thread -package threads -package str -I population -o population/parse.cmi population/parse.mli # cached
-# Target: population/query.mli.depends, tags: { extension:mli, file:population/query.mli, ocaml, ocamldep, package(str), package(threads), quiet, thread, traverse }
-ocamlfind ocamldep -package threads -package str -modules population/query.mli > population/query.mli.depends # cached
-# Target: sequence.mli.depends, tags: { extension:mli, file:sequence.mli, ocaml, ocamldep, package(str), package(threads), quiet, thread, traverse }
-ocamlfind ocamldep -package threads -package str -modules sequence.mli > sequence.mli.depends # cached
+# Target: test_seq.ml.depends, tags: { extension:ml, file:test_seq.ml, ocaml, ocamldep, package(str), package(threads), quiet, thread, traverse }
+ocamlfind ocamldep -package threads -package str -modules test_seq.ml > test_seq.ml.depends # cached
 # Target: future.mli.depends, tags: { extension:mli, file:future.mli, ocaml, ocamldep, package(str), package(threads), quiet, thread, traverse }
 ocamlfind ocamldep -package threads -package str -modules future.mli > future.mli.depends # cached
 # Target: future.cmi, tags: { byte, compile, extension:mli, file:future.mli, interf, ocaml, package(str), package(threads), quiet, thread, traverse }
-ocamlfind ocamlc -c -thread -package threads -package str -I population -o future.cmi future.mli # cached
+ocamlfind ocamlc -c -thread -package threads -package str -o future.cmi future.mli # cached
+# Target: sequence.mli.depends, tags: { extension:mli, file:sequence.mli, ocaml, ocamldep, package(str), package(threads), quiet, thread, traverse }
+ocamlfind ocamldep -package threads -package str -modules sequence.mli > sequence.mli.depends # cached
 # Target: sequence.cmi, tags: { byte, compile, extension:mli, file:sequence.mli, interf, ocaml, package(str), package(threads), quiet, thread, traverse }
-ocamlfind ocamlc -c -thread -package threads -package str -I population -o sequence.cmi sequence.mli # cached
-# Target: population/query.cmi, tags: { byte, compile, extension:mli, file:population/query.mli, interf, ocaml, package(str), package(threads), quiet, thread, traverse }
-ocamlfind ocamlc -c -thread -package threads -package str -I population -o population/query.cmi population/query.mli # cached
-# Target: population/population.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:population/population.cmo, file:population/population.ml, implem, ocaml, package(str), package(threads), quiet, thread, traverse }
-ocamlfind ocamlc -c -thread -package threads -package str -I population -o population/population.cmo population/population.ml # cached
-# Target: population/parse.ml.depends, tags: { extension:ml, file:population/parse.ml, ocaml, ocamldep, package(str), package(threads), quiet, thread, traverse }
-ocamlfind ocamldep -package threads -package str -modules population/parse.ml > population/parse.ml.depends # cached
-# Target: population/parse.cmx, tags: { compile, extension:cmx, extension:ml, file:population/parse.cmx, file:population/parse.ml, implem, native, ocaml, package(str), package(threads), quiet, thread, traverse }
-ocamlfind ocamlopt -c -thread -package threads -package str -I population -o population/parse.cmx population/parse.ml # cached
-# Target: population/query.ml.depends, tags: { extension:ml, file:population/query.ml, ocaml, ocamldep, package(str), package(threads), quiet, thread, traverse }
-ocamlfind ocamldep -package threads -package str -modules population/query.ml > population/query.ml.depends
+ocamlfind ocamlc -c -thread -package threads -package str -o sequence.cmi sequence.mli # cached
+# Target: system.mli.depends, tags: { extension:mli, file:system.mli, ocaml, ocamldep, package(str), package(threads), quiet, thread, traverse }
+ocamlfind ocamldep -package threads -package str -modules system.mli > system.mli.depends # cached
+# Target: system.cmi, tags: { byte, compile, extension:mli, file:system.mli, interf, ocaml, package(str), package(threads), quiet, thread, traverse }
+ocamlfind ocamlc -c -thread -package threads -package str -o system.cmi system.mli # cached
+# Target: test_seq.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:test_seq.cmo, file:test_seq.ml, implem, ocaml, package(str), package(threads), quiet, thread, traverse }
+ocamlfind ocamlc -c -thread -package threads -package str -o test_seq.cmo test_seq.ml # cached
 # Target: future.ml.depends, tags: { extension:ml, file:future.ml, ocaml, ocamldep, package(str), package(threads), quiet, thread, traverse }
 ocamlfind ocamldep -package threads -package str -modules future.ml > future.ml.depends # cached
 # Target: future.cmx, tags: { compile, extension:cmx, extension:ml, file:future.cmx, file:future.ml, implem, native, ocaml, package(str), package(threads), quiet, thread, traverse }
-ocamlfind ocamlopt -c -thread -package threads -package str -I population -o future.cmx future.ml # cached
+ocamlfind ocamlopt -c -thread -package threads -package str -o future.cmx future.ml # cached
 # Target: sequence.ml.depends, tags: { extension:ml, file:sequence.ml, ocaml, ocamldep, package(str), package(threads), quiet, thread, traverse }
-ocamlfind ocamldep -package threads -package str -modules sequence.ml > sequence.ml.depends # cached
+ocamlfind ocamldep -package threads -package str -modules sequence.ml > sequence.ml.depends
 # Target: mpi.ml.depends, tags: { extension:ml, file:mpi.ml, ocaml, ocamldep, package(str), package(threads), quiet, thread, traverse }
 ocamlfind ocamldep -package threads -package str -modules mpi.ml > mpi.ml.depends # cached
 # Target: mpi.mli.depends, tags: { extension:mli, file:mpi.mli, ocaml, ocamldep, package(str), package(threads), quiet, thread, traverse }
 ocamlfind ocamldep -package threads -package str -modules mpi.mli > mpi.mli.depends # cached
 # Target: mpi.cmi, tags: { byte, compile, extension:mli, file:mpi.mli, interf, ocaml, package(str), package(threads), quiet, thread, traverse }
-ocamlfind ocamlc -c -thread -package threads -package str -I population -o mpi.cmi mpi.mli # cached
+ocamlfind ocamlc -c -thread -package threads -package str -o mpi.cmi mpi.mli # cached
 # Target: system.ml.depends, tags: { extension:ml, file:system.ml, ocaml, ocamldep, package(str), package(threads), quiet, thread, traverse }
 ocamlfind ocamldep -package threads -package str -modules system.ml > system.ml.depends # cached
-# Target: system.mli.depends, tags: { extension:mli, file:system.mli, ocaml, ocamldep, package(str), package(threads), quiet, thread, traverse }
-ocamlfind ocamldep -package threads -package str -modules system.mli > system.mli.depends # cached
-# Target: system.cmi, tags: { byte, compile, extension:mli, file:system.mli, interf, ocaml, package(str), package(threads), quiet, thread, traverse }
-ocamlfind ocamlc -c -thread -package threads -package str -I population -o system.cmi system.mli # cached
 # Target: system.cmx, tags: { compile, extension:cmx, extension:ml, file:system.cmx, file:system.ml, implem, native, ocaml, package(str), package(threads), quiet, thread, traverse }
-ocamlfind ocamlopt -c -thread -package threads -package str -I population -o system.cmx system.ml # cached
+ocamlfind ocamlopt -c -thread -package threads -package str -o system.cmx system.ml # cached
 # Target: mpi.cmx, tags: { compile, extension:cmx, extension:ml, file:mpi.cmx, file:mpi.ml, implem, native, ocaml, package(str), package(threads), quiet, thread, traverse }
-ocamlfind ocamlopt -c -thread -package threads -package str -I population -o mpi.cmx mpi.ml # cached
+ocamlfind ocamlopt -c -thread -package threads -package str -o mpi.cmx mpi.ml # cached
 # Target: sequence.cmx, tags: { compile, extension:cmx, extension:ml, file:sequence.cmx, file:sequence.ml, implem, native, ocaml, package(str), package(threads), quiet, thread, traverse }
-ocamlfind ocamlopt -c -thread -package threads -package str -I population -o sequence.cmx sequence.ml # cached
-# Target: population/query.cmx, tags: { compile, extension:cmx, extension:ml, file:population/query.cmx, file:population/query.ml, implem, native, ocaml, package(str), package(threads), quiet, thread, traverse }
-ocamlfind ocamlopt -c -thread -package threads -package str -I population -o population/query.cmx population/query.ml
-+ ocamlfind ocamlopt -c -thread -package threads -package str -I population -o population/query.cmx population/query.ml
-File "population/query.ml", line 113, characters 45-49:
-Error: This expression has type bool S.t
-       but an expression was expected of type int S.t
-       Type bool is not compatible with type int 
+ocamlfind ocamlopt -c -thread -package threads -package str -o sequence.cmx sequence.ml
++ ocamlfind ocamlopt -c -thread -package threads -package str -o sequence.cmx sequence.ml
+File "sequence.ml", line 114, characters 4-144:
+Error: This expression has type 'a array
+       but an expression was expected of type 'a array array
+       The type variable 'a occurs inside 'a array
 Command exited with code 2.
 # Compilation unsuccessful.

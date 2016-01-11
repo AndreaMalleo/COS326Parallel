@@ -107,50 +107,84 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
 
   let num_cores = System.cpu_count ()
 
+  let alpha = 1
+  let num_chunks = alpha*num_cores
 
-  let tabulate f n = failwith "implement me"
-
-
+  let force_arrays (n: int) (a: 'a Par.future array) (num_chunks: int) : 'a array = 
+    Array.init n (fun i ->
+		  let chunk_index = (n * i) / num_chunks in
+		  let chunk = Par.force a.(chunk_index) in
+		  chunk.(i-chunk_index))
+		  
+  let tabulate f n = 
+    if (num_chunks > n) then
+       let num_chunks = n in 
+    let result = Array.init num_chunks (fun i ->
+      let lo = (n * i) / num_chunks in
+      let hi = (n * (i+1) / num_chunks) - 1 in
+      F.future (Array.init (hi - lo + 1))
+	       (fun i -> f (i + lo))) in
+    force_arrays n result num_chunks
+  ;;
+    
   let seq_of_array a = a
 
 
   let array_of_seq seq = seq
 
 
-  let iter f seq = failwith "implement me"
+  let iter f seq = 
+    let copyseq = Array.copy seq in
+    Array.iter f copyseq
 
 
-  let length seq = failwith "implement me"
+  let length seq = Array.length seq
 
 
-  let empty () = failwith "implement me"
+  let empty () = seq_of_array [||]
 
 
   let cons elem seq = failwith "implement me"
 
 
-  let singleton elem = failwith "implement me"
+  let singleton elem = [elem] 
 
 
-  let append seq1 seq2 = failwith "implement me"
+  let append seq1 seq2 = Array.append seq1 seq2
 
 
-  let nth seq i = failwith "implement me"
+  let nth seq i = seq.(i)
+
+  let map f seq = 
+    tabulate (fun i -> f seq.(i)) (length seq)
+  ;;
+
+(*  let map_reduce m r b seq = 
+    let result = Array.init num_chunks (fun i ->
+     let l = (n * i) / num_chunks in
+     let r = (n * (i+1) / num_chunks) in
+     F.future (let maped_array = Array.map m (Array.sub seq l r) in
+	       Array.fold_left f (Array.get maped_array))
+	      (Array.sub maped_array 1 (r-l))) in 
+    Array.left_fold (fun acc elt -> f acc (F.force elt)) b result
+ ;;
+   
+  (*order is acc elt*)
+  let reduce f b seq =
+    let result = Array.init num_chunks (fun i ->
+     let l = (n * i) / num_chunks in
+     let r = (n * (i+1) / num_chunks) in
+     F.future (Array.fold_left f (Array.get seq l))
+	      (Array.sub seq (l+1) r)) in 
+    Array.left_fold (fun acc elt -> f acc (F.force elt)) b result
+  ;;*)
+
+  let flatten seqseq = 
+    let f acc b = Array.fold_left (fun acc b -> b) acc b in 
+    Array.fold_left f [] seqseq
 
 
-  let map f seq = failwith "implement me"
-
-
-  let map_reduce m r b seq = failwith "implement me"
-
-
-  let reduce r = failwith "implement me"
-
-
-  let flatten seqseq = failwith "implement me"
-
-
-  let repeat elem num = failwith "implement me"
+  let repeat elem num = Array.make num elem
 
 
   let zip (seq1,seq2) = failwith "implement me"
