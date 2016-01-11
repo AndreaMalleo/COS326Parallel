@@ -99,7 +99,6 @@ module type SEQ_ARGS = sig
   val use_mpi: bool
 end
 
-
 module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
 
   type 'a t = 'a array
@@ -107,24 +106,21 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
 
   let num_cores = System.cpu_count ()
 
-  let alpha = 1
-  let num_chunks = alpha*num_cores
+  let num_chunks = 3
 
-  let force_arrays (n: int) (a: 'a F.future array) (num_chunks: int) : 'a array = 
+  let force_arrays (n: int) (a: 'a array Par.future array): 'b array =
     Array.init n (fun i ->
 		  let chunk_index = (n * i) / num_chunks in
-		  let chunk = F.force a.(chunk_index) in
+		  let chunk = Par.force a.(chunk_index) in
 		  chunk.(i-chunk_index))
-		  
+
   let tabulate f n = 
-    if (num_chunks > n) then
-       let num_chunks = n in 
     let result = Array.init num_chunks (fun i ->
       let lo = (n * i) / num_chunks in
       let hi = (n * (i+1) / num_chunks) - 1 in
-      F.future (Array.init (hi - lo + 1))
+      Par.future (Array.init (hi - lo + 1))
 	       (fun i -> f (i + lo))) in
-    force_arrays n result num_chunks
+    force_arrays n result
   ;;
     
   let seq_of_array a = a
@@ -157,24 +153,27 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
     tabulate (fun i -> f seq.(i)) (length seq)
   ;;
 
-  let map_reduce m r b seq = 
+  let map_reduce m r b seq =
+    let n = length seq in  
     let result = Array.init num_chunks (fun i ->
-     let l = (n * i) / num_chunks in
-     let r = (n * (i+1) / num_chunks) in
-     F.future (let maped_array = Array.map m (Array.sub seq l r) in
-	       Array.fold_left f (Array.get maped_array))
-	      (Array.sub maped_array 1 (r-l))) in 
-    Array.left_fold (fun acc elt -> f acc (F.force elt)) b result
+     let lo = (n * i) / num_chunks in
+     let hi = (n * (i+1) / num_chunks) in
+     Par.future (fun x ->
+		 let maped_array = Array.map m x in
+		 Array.fold_left r (Array.get maped_array 1) (Array.sub maped_array 1 (hi-lo)))
+		(Array.sub seq lo hi)) in  
+    Array.fold_left (fun acc elt -> r acc (Par.force elt)) b result
  ;;
    
   (*order is acc elt*)
-  let reduce f b seq =
-    let result = Array.init num_chunks (fun i ->
+ let reduce f b seq =
+   let n = length seq in
+   let result = Array.init num_chunks (fun i ->
      let l = (n * i) / num_chunks in
      let r = (n * (i+1) / num_chunks) in
-     F.future (Array.fold_left f (Array.get seq l))
+     Par.future (Array.fold_left f (Array.get seq l))
 	      (Array.sub seq (l+1) r)) in 
-    Array.left_fold (fun acc elt -> f acc (F.force elt)) b result
+    Array.fold_left (fun acc elt -> f acc (Par.force elt)) b result
   ;;
 
   let flatten seqseq = failwith "implement me"
