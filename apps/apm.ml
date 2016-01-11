@@ -113,10 +113,10 @@ let filter (l: 'a PSeq.t) (f: 'a -> bool): 'a PSeq.t =
   let bitsum = PSeq.scan (fun prev curr -> prev + curr) 0 bits in
   let bitsum_array = PSeq.array_of_seq bitsum in
   let filteredArray = Array.make length (PSeq.nth l 0) in
-  PSeq.tabulate (fun i ->
-		 if bits_array.(i) == 0 then i
-		 else (Array.set filteredArray (bitsum_array.(i)-1) l_array.(i); i))
-		(PSeq.length l);
+  let _ = PSeq.tabulate (fun i ->
+    if bits_array.(i) == 0 then i
+    else (Array.set filteredArray (bitsum_array.(i)-1) l_array.(i); i))
+			(PSeq.length l) in
   PSeq.seq_of_array filteredArray
 ;;
 
@@ -129,36 +129,64 @@ let update (results: (int * float * profile) array)
 				     else (curr_i, 0.0, p)
 				   else (curr_i, 0.0, p)) (-1, 0.0, p) old_results in
   if index != -1 then
-    (PSeq.tabulate (fun i -> if i < index then i
-			    else if i = index then
-			      (Array.set results i (i, score, p); i)
-			     else (Array.set results i (PSeq.array_of_seq old_results).(i-1); i))
-		   count; ())
+    let _ = PSeq.tabulate
+	      (fun i -> if i < index then i
+			else if i = index then
+			  (Array.set results i (i, score, p); i)
+			else
+			  let (_, old_score, old_p) = (PSeq.array_of_seq old_results).(i-1) in
+			  (Array.set results i (i, old_score, old_p); i)) count in
+    ()
   else () (*do nothing*)
   
+let score (p1: profile) (p2: profile): float =
+  let score_1 =
+    if ((p1.sex <> p2.sex) && (p1.orientation = "straight")
+	&& (p2.orientation = "straight"))
+       || ((p1.sex = p2.sex) && (p1.orientation = "gay/lesbian")
+	   && (p2.orientation = "gay/lesbian"))
+    then 0.5 else 0.0 in
+  let score_2 = score_1 +. (if ((p1.lo_agepref <= p2.age)
+			       && (p1.hi_agepref >= p2.age)
+			       && (p2.lo_agepref <= p1.age)
+			       && (p2.hi_agepref >= p1.age))
+			   then 0.25 else 0.0) in
+  let score_3 = score_2 +. (if (p1.wants_children = p2.wants_children)
+			   then 0.12 else 0.0) in
+  let score_4 = score_3 +. (if (p1.smokes = p2.smokes)
+			   then 0.06 else 0.0) in
+  let score_5 = score_4 +. (if (p1.has_children = p2.has_children)
+			   then 0.03 else 0.0) in
+  let score_6 = score_5 +. (if (p1.profession = p2.profession)
+			   then 0.01 else 0.0) in
+  let score_7 = score_6 +. (if (p1.drinks = p2.drinks)
+			   then 0.01 else 0.0) in
+  let score_8 = score_7 +. (if (p1.leisure = p2.leisure)
+			   then 0.01 else 0.0) in
+  score_8 +. (if (p1.music = p2.music) then 0.01 else 0.0)
+;;
+
+(* need to account for 0 matches*)
+(*error when not in person*)
 let matchme (args : string array) : unit =
   let match_count = int_of_string args.(1) in
   let profs = read_file (args.(0)) in
   let prof_seq = PSeq.seq_of_array (Array.of_list profs) in
   let curr_profile = PSeq.nth (filter prof_seq (fun p ->
-						Printf.printf "%s%s" p.firstname args.(2);p.firstname = args.(2)
-							 && p.lastname = args.(3))) 0 in
-  Printf.printf "here";
-  let other_profs = filter prof_seq (fun p -> p.firstname != args.(2)
-					      || p.lastname != args.(3)) in
-  let score_seq = PSeq.map (*!! need to change score*)
-		    (fun p -> (1.0, p)) other_profs in
+						p.firstname = args.(2)
+						&& p.lastname = args.(3))) 0 in
+  let other_profs = filter prof_seq (fun p -> p <> curr_profile) in
+  let score_seq = PSeq.map 
+		    (fun p ->
+		     let score = score p curr_profile in
+		     (score, p)) other_profs in
   let results = Array.init match_count (fun i -> (i, 0.0, curr_profile)) in
-  PSeq.map (fun r -> update results r match_count) score_seq;
+  let _ = PSeq.map (fun r -> update results r match_count) score_seq in 
   let processed_results = PSeq.map (fun (i, s, p) -> (s, p)) (PSeq.seq_of_array results) in
   let final_results = Array.to_list (PSeq.array_of_seq
-				       (filter processed_results (fun (s, p) -> p != curr_profile))) in
+				       (filter processed_results (fun (s, p) -> p <> curr_profile))) in
   print_matches args.(1) (curr_profile, final_results)
 ;;
-
-
-
-						    
 
 
 
