@@ -35,10 +35,8 @@ ocamlfind ocamlopt -c -thread -package threads -package str -o system.cmx system
 ocamlfind ocamlopt -c -thread -package threads -package str -o mpi.cmx mpi.ml # cached
 # Target: sequence.cmx, tags: { compile, extension:cmx, extension:ml, file:sequence.cmx, file:sequence.ml, implem, native, ocaml, package(str), package(threads), quiet, thread, traverse }
 ocamlfind ocamlopt -c -thread -package threads -package str -o sequence.cmx sequence.ml
-+ ocamlfind ocamlopt -c -thread -package threads -package str -o sequence.cmx sequence.ml
-File "sequence.ml", line 114, characters 4-144:
-Error: This expression has type 'a array
-       but an expression was expected of type 'a array array
-       The type variable 'a occurs inside 'a array
-Command exited with code 2.
-# Compilation unsuccessful.
+# Target: test_seq.cmx, tags: { compile, extension:cmx, extension:ml, file:test_seq.cmx, file:test_seq.ml, implem, native, ocaml, package(str), package(threads), quiet, thread, traverse }
+ocamlfind ocamlopt -c -thread -package threads -package str -o test_seq.cmx test_seq.ml
+# Target: test_seq.native, tags: { dont_link_with, extension:native, file:test_seq.native, link, native, ocaml, package(str), package(threads), program, quiet, thread, traverse }
+ocamlfind ocamlopt -linkpkg -thread -package threads -package str future.cmx system.cmx mpi.cmx sequence.cmx test_seq.cmx -o test_seq.native
+# Compilation successful.
