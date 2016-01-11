@@ -116,7 +116,6 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
 		  let chunk = F.force a.(chunk_index) in
 		  chunk.(i-chunk_index))
 		  
-  (*might be out of order*)
   let tabulate f n = 
     if (num_chunks > n) then
        let num_chunks = n in 
@@ -154,24 +153,29 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
 
   let nth seq i = failwith "implement me"
 
-
   let map f seq = 
     tabulate (fun i -> f seq.(i)) (length seq)
   ;;
 
-  let map_reduce m r b seq = failwith "implement me"
-
-  let reduce f b seq = 
-     if (num_chunks > n) then
-       let num_chunks = n in 
-      let result = Array.init num_chunks (fun i ->
-      let l = (n * i) / num_chunks in
-      let r = (n * (i+1) / num_chunks) - 1 in
-      F.future (Array.fold_left f (Array.get seq l) (Array.sub seq (l+1) r)))   in
-      Array.fold_left (fun acc el -> f acc (F.force el)) b result 
-       ;;
-    
-
+  let map_reduce m r b seq = 
+    let result = Array.init num_chunks (fun i ->
+     let l = (n * i) / num_chunks in
+     let r = (n * (i+1) / num_chunks) in
+     F.future (let maped_array = Array.map m (Array.sub seq l r) in
+	       Array.fold_left f (Array.get maped_array))
+	      (Array.sub maped_array 1 (r-l))) in 
+    Array.left_fold (fun acc elt -> f acc (F.force elt)) b result
+ ;;
+   
+  (*order is acc elt*)
+  let reduce f b seq =
+    let result = Array.init num_chunks (fun i ->
+     let l = (n * i) / num_chunks in
+     let r = (n * (i+1) / num_chunks) in
+     F.future (Array.fold_left f (Array.get seq l))
+	      (Array.sub seq (l+1) r)) in 
+    Array.left_fold (fun acc elt -> f acc (F.force elt)) b result
+  ;;
 
   let flatten seqseq = failwith "implement me"
 
