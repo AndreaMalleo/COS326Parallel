@@ -8,21 +8,28 @@ module PSeq = Sequence.ListSeq
 open Sequence
 open Util
        
-(*	
-let doc_get_words (doc: (string * string PSeq.t) PSeq.t) =
-  (*or should it be 0*)
-  let words = snd (PSeq.nth doc 0) in
-  PSeq.map (fun w -> PSeq.singleton (w, PSeq.empty)) words
-;;
-  
-let doc_get_id (doc: (string * string PSeq.t) PSeq.t) =
-  (*or should it be 0*)
-  fst (PSeq.nth doc 0)
+
+let docs_to_word_list (doc: document): (int * string PSeq.t) =
+  let words = PSeq.seq_of_array (Array.of_list (split_words doc.contents)) in
+  let lower_words = PSeq.map (fun w -> String.lowercase w) words in
+  (doc.id, lower_words)
 ;;
 
-let docs_to_word_list (doc: document): (string * string PSeq.t) =
-   PSeq.seq_of_array (Array.of_list (split_words doc.contents))
+let filter (l: 'a PSeq.t) (f: 'a -> bool): 'a PSeq.t =
+  let l_array = PSeq.array_of_seq l in
+  let bits = PSeq.map (fun x -> if f x then 1 else 0) l in
+  let bits_array = PSeq.array_of_seq bits in
+  let length = PSeq.reduce (fun sum x -> sum + x) 0 bits in
+  let bitsum = PSeq.scan (fun prev curr -> prev + curr) 0 bits in
+  let bitsum_array = PSeq.array_of_seq bitsum in
+  let filteredArray = Array.make length (PSeq.nth l 0) in
+  let _ = PSeq.tabulate (fun i ->
+    if bits_array.(i) == 0 then i
+    else (Array.set filteredArray (bitsum_array.(i)-1) l_array.(i); i))
+			(PSeq.length l) in
+  PSeq.seq_of_array filteredArray
 ;;
+    
 let find (list: 'a PSeq.t) (elt: 'a): bool =
   match (PSeq.map_reduce (fun x -> Some x)
 			(fun result opt ->
@@ -34,20 +41,40 @@ let find (list: 'a PSeq.t) (elt: 'a): bool =
   | Some _ -> true
   | None -> false
 ;;
+
+let get_words ((_, word_list): int * string PSeq.t)
+	      ((id, doc_words): int * string PSeq.t) =
+  let word_len = PSeq.length word_list in
+  let doc_word_len = PSeq.length doc_words in
+  let new_words = Array.make doc_word_len "" in
+  let _ = PSeq.tabulate (fun i ->
+    let word = PSeq.nth doc_words i in
+    if find word_list word then ()
+    else Array.set new_words i word) doc_word_len in
+  let new_words' = filter (PSeq.seq_of_array new_words)
+			  (fun x -> x <> "") in
+  (0, PSeq.tabulate (fun i ->
+    if i < word_len then
+      PSeq.nth word_list i
+    else
+      PSeq.nth new_words' (i - word_len))
+		((PSeq.length new_words') + word_len)) 
+;;
   
-let reduce_docs (word_list: string PSeq.t) (doc_list: string PSeq.t): string PSeq.t =
-  PSeq.reduce (fun curr_word_list word ->
-	       if find curr_word_list word then
-		 curr_word_list
-	       else
-		 PSeq.cons curr_word_list word) word_list doc_list
- *)
 let mkindex (args : string ) : unit =
-()
-(*  let docs = load_documents args in (*should we use map reduce to compute these?*)
-  let doc_seq = PSeq.seq_of_array (Array.of_list docs) in
-  let list_of_words = PSeq.map_reduce docs_to_word_list reduce_docs PSeq.empty docs_seq in
-  let results = PSeq.map (fun a -> (fst a, Array.to_list PSeq.array_of_seq (snd a))) raw_results in
-  print_reduce_results (Array.to_list PSeq.array_of_seq results)
- *);;
+  let docs = load_documents args in 
+  let doc_words = PSeq.map docs_to_word_list
+			   (PSeq.seq_of_array (Array.of_list docs)) in
+  let (_, words) = PSeq.reduce get_words (0, PSeq.empty()) doc_words in 
+  let results = PSeq.map (fun w ->
+    let (_, ids) = PSeq.reduce (fun (_, id_list) (id, word_list) ->
+      if find word_list w then
+	let id_len = PSeq.length id_list in
+	(0, PSeq.tabulate (fun i ->
+	  if i < id_len then PSeq.nth id_list i 
+	  else string_of_int id) (id_len + 1))
+      else (0, id_list)) (0, PSeq.empty()) doc_words in
+    (w, Array.to_list (PSeq.array_of_seq ids))) words in
+  print_reduce_results (Array.to_list (PSeq.array_of_seq results))
+;;
 
