@@ -83,8 +83,8 @@ let print_matches (n : string) ((p, ps) : profile * (float * profile) list) : un
 
 
 
-(*module PSeq = Sequence.Seq(PFuture)(struct let use_mpi = true end)*)
-module PSeq = Sequence.ListSeq
+module PSeq = Sequence.Seq(PFuture)(struct let use_mpi = true end)
+(*module PSeq = Sequence.ListSeq*)
 		
 (* apm computes the potential love of your life.  The filename of a file
  * containing candidate profiles is in location 0 of the given array.

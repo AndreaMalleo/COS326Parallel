@@ -1,6 +1,6 @@
 open Future
-(*module PSeq = Sequence.Seq(PFuture)(struct let use_mpi = true end)*)
-module PSeq = Sequence.ListSeq
+module PSeq = Sequence.Seq(PFuture)(struct let use_mpi = true end)
+(*module PSeq = Sequence.ListSeq*)
 
 (* inverted_index computes an inverted index for the contents of
  * a given file. The filename is the given string.
