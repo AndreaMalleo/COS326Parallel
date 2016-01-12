@@ -105,9 +105,7 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
 
   let num_cores = System.cpu_count ()
 
-  (*need to fix this*)
-  (*also make sure chunk is not too big*)
-  let num_chunks = 3
+  let num_chunks = num_cores * 1
 						     
   let force_arrays (n: int) (a: 'a array Par.future array) (num_chunks: int) : 'a array = 
     let forced = Array.map (fun x -> Par.force x) a in
@@ -264,7 +262,10 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
 	  if i = 0 then
 	    match from_left with
 	    | Some x -> f x chunk.(i)
-	    | None -> chunk.(i)
+	    | None ->
+	       match base with
+	       | Some b -> f b chunk.(i)
+	       | None -> failwith "should not reach"
 	  else f chunk.(i-1) chunk.(i) in
 	chunk.(i) <- curr_elt; curr_elt) in
       Mpi.send ch (Result scan_result)
@@ -294,8 +295,8 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
 	| _ -> failwith "should not reach" in
       Mpi.send left_child (Down from_left);
       (match from_left with
-       | Some x -> Mpi.send right_child (Down (Some (f x result)))
-       | None -> Mpi.send right_child (Down (Some result)));
+       | Some x -> Mpi.send right_child (Down (Some (f x l_result)))
+       | None -> Mpi.send right_child (Down (Some l_result)));
       
       (*send scan result*)
       let l_scan =
@@ -318,8 +319,8 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
 		     then Array.length seq
 		     else num_chunks in
     let copyseq = Array.copy seq in
-    let chunk_size = (length copyseq) / num_chunks in
-    Printf.printf "chunk size %d\n" chunk_size; 
+    let chunk_size = if num_chunks = 0 then 0
+		     else (length copyseq) / num_chunks in
     let ch = Mpi.spawn child (copyseq, chunk_size, Some base, f) in
     let _ = match Mpi.receive ch with
       | Up(r) -> r
